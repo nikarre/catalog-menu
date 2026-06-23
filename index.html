@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Каталог товаров</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f4f4f4;
+    padding: 30px;
+    color: #222;
+  }
+  h1 { margin-bottom: 20px; }
+
+  ul { list-style: none; padding-left: 20px; }
+  #catalog { padding-left: 0; max-width: 400px; }
+
+  li { margin: 4px 0; }
+
+  /* Один пункт меню */
+  .item {
+    display: inline-block;
+    padding: 8px 14px;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  /* Цвет по уровню вложенности */
+  .item.level-1 { background: #ec6fa6; } /* первый уровень — розовый */
+  .item.level-2 { background: #b39ddb; } /* второй уровень — нежно-фиолетовый */
+
+  /* Значок +/- для пунктов с вложенностью */
+  .item.has-children::before {
+    content: "+";
+    display: inline-block;
+    width: 16px;
+    font-weight: bold;
+  }
+  /* Когда пункт раскрыт — меняем + на - */
+  li.open > .item.has-children::before { content: "\2212"; }
+
+  /* Листовой пункт (без вложенности) выглядит как ссылка */
+  .item.leaf {
+    background: #8fd19e;
+    text-decoration: underline;
+  }
+
+  /* Вложенный список по умолчанию скрыт, показываем только у раскрытых */
+  li > ul { display: none; }
+  li.open > ul { display: block; }
+
+  /* Подсказка под листовым пунктом ("это ссылка") */
+  .hint {
+    display: none;
+    margin: 4px 0 0 4px;
+    font-size: 13px;
+    color: #555;
+    font-style: italic;
+  }
+  .hint.show { display: block; }
+</style>
+</head>
+<body>
+
+<h1>Каталог товаров</h1>
+
+<ul id="catalog"></ul>
+
+<script>
+// Данные каталога: вложенная структура на 3 уровня.
+// Если у пункта есть children — он раскрывается, если нет — это ссылка.
+const catalog = [
+  {
+    name: "Книги",
+    children: [
+      {
+        name: "Отечественные",
+        children: [
+          { name: "Детективы" },
+          { name: "Научная фантастика" },
+          { name: "Исторические" }
+        ]
+      },
+      {
+        name: "Зарубежные",
+        children: [
+          { name: "Детективы" },
+          { name: "Научная фантастика" },
+          { name: "Исторические" }
+        ]
+      }
+    ]
+  },
+  {
+    name: "DVD",
+    children: [
+      {
+        name: "Отечественные",
+        children: [
+          { name: "Детективы" },
+          { name: "Научная фантастика" },
+          { name: "Исторические" }
+        ]
+      },
+      {
+        name: "Зарубежные",
+        children: [
+          { name: "Детективы" },
+          { name: "Научная фантастика" },
+          { name: "Исторические" }
+        ]
+      }
+    ]
+  }
+];
+
+// Рекурсивно строим список из массива узлов.
+// depth — уровень вложенности (1, 2, 3...), нужен для цвета.
+function buildMenu(nodes, depth) {
+  const ul = document.createElement("ul");
+
+  nodes.forEach(node => {
+    const li = document.createElement("li");
+    const span = document.createElement("span");
+    span.className = "item level-" + depth; // класс уровня задаёт цвет
+    span.textContent = node.name;
+
+    // Проверяем, есть ли вложенные элементы
+    const hasChildren = node.children && node.children.length > 0;
+
+    if (hasChildren) {
+      span.classList.add("has-children");
+      // строим вложенный список (уровнем глубже) и кладём внутрь li
+      li.appendChild(span);
+      li.appendChild(buildMenu(node.children, depth + 1));
+
+      // по клику — раскрываем / сворачиваем этот пункт
+      span.addEventListener("click", () => {
+        li.classList.toggle("open");
+      });
+    } else {
+      // листовой пункт — это ссылка
+      span.classList.add("leaf");
+      li.appendChild(span);
+
+      // подсказка, что по пункту можно перейти
+      const hint = document.createElement("div");
+      hint.className = "hint";
+      hint.textContent = "→ по этому пункту можно перейти по ссылке";
+      li.appendChild(hint);
+
+      // по клику показываем подсказку
+      span.addEventListener("click", () => {
+        hint.classList.toggle("show");
+      });
+    }
+
+    ul.appendChild(li);
+  });
+
+  return ul;
+}
+
+// Строим меню (начинаем с уровня 1) и вставляем его в #catalog
+const root = document.getElementById("catalog");
+root.appendChild(buildMenu(catalog, 1));
+</script>
+
+</body>
+</html>
